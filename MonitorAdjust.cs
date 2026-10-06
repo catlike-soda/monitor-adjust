@@ -15,7 +15,7 @@ class Row
     public Label Value;
     public Label NameLabel;
     public int Original = -1;
-    public int Max = 100;          // 滑块量程上限：不同显示器进制可能不同（0-100 / 0-255）
+    public int Max = 100;          // Slider upper bound; the scale differs between monitors (0-100 or 0-255)
 }
 
 class SrcRow
@@ -30,7 +30,7 @@ class SrcRow
     public bool Guessed = false;
 }
 
-// 界面文案：中英文两套。Set() 一次性全量赋值，切换时再刷新已存在的控件即可。
+// UI strings, one set per language. Set() assigns them all at once; switching just refreshes existing controls.
 static class L
 {
     public static bool En = false;
@@ -126,13 +126,13 @@ static class Program
     static string CliPath = null;
     static string CliTempDir = null;
 
-    // 假数据模式（命令行加 --fake N）：完全不调用 winddcutil，用编造的数据画界面。
-    // 用途：没有显示器 / 没有 CLI / 受限沙箱里验证排版，以及给别人演示界面。
+    // Fake-data mode (--fake N): never calls winddcutil, draws the UI from made-up data.
+    // For checking the layout with no monitors / no CLI / inside a restricted sandbox, and for demos.
     static bool FakeMode = false;
     static int FakeMonitors = 2;
 
-    // 只在测试排版时用（--screen 1366x768）：假装屏幕只有这么大，
-    // 用来验证小屏幕 + 多显示器时会不会溢出、滚动条和按钮是否正常。
+    // Layout testing only (--screen 1366x768): pretend the screen is only this big, to verify
+    // that a small screen with many monitors does not overflow and the scrollbar/buttons still work.
     static int OverrideScreenW = 0;
     static int OverrideScreenH = 0;
 
@@ -156,7 +156,7 @@ static class Program
 
     static string Run(string arguments)
     {
-        if (FakeMode) return "";     // 假数据模式：绝不碰真实显示器
+        if (FakeMode) return "";     // fake-data mode: never touches a real monitor
         try
         {
             ProcessStartInfo psi = new ProcessStartInfo(CliPath, arguments);
@@ -208,7 +208,7 @@ static class Program
     {
         if (FakeMode)
         {
-            // 偶数号故意给一个 >100 的值，用来验证「自动量程」能识别 0-255
+            // even-numbered monitors deliberately return >100, to exercise the 0-255 auto-range path
             if (code == "0x10") return (display % 2 == 0) ? 130 : 45;
             if (code == "0x12") return 60;
             if (code == "0x60") return (display % 2 == 1) ? 0x12 : 0x0F;
@@ -225,7 +225,7 @@ static class Program
         Run("setvcp " + display + " " + code + " " + value.ToString());
     }
 
-    // 接口名两套语言基本都写英文缩写，只有「分量」和兜底名需要跟着切
+    // Connector names are English abbreviations in both languages; only Component and the fallback follow the language
     static string SourceName(int v)
     {
         switch (v)
@@ -306,8 +306,8 @@ static class Program
         else if (s.Combo.Items.Count > 0) s.Combo.SelectedIndex = 0;
     }
 
-    // winddcutil 只装在 exe 自己旁边（分发包就是这样），其次是子目录 / 当前目录 / PATH。
-    // 不写死任何个人机器上的路径。
+    // winddcutil lives next to the exe (that is how the release zip is laid out), then a subfolder,
+    // then the current directory, then PATH. No personal machine paths are hard-coded.
     static string FindCli()
     {
         List<string> cands = new List<string>();
@@ -343,7 +343,7 @@ static class Program
         return null;
     }
 
-    // ---- 语言选择的持久化：先试 exe 同目录（便携），不行再退到 %LOCALAPPDATA% ----
+    // ---- Language persistence: try the exe folder first (portable), fall back to %LOCALAPPDATA% ----
     static string[] SettingsFiles()
     {
         string local = "";
@@ -402,7 +402,7 @@ static class Program
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 
-        // 先把 --fake N / --screen WxH / --lang xx 摘出来，剩下的参数按原来的规则解释
+        // Pull out --fake N / --screen WxH / --lang xx first; remaining arguments are parsed as before
         List<string> rest = new List<string>();
         string langArg = null;
         for (int i = 0; i < args.Length; i++)
@@ -443,7 +443,7 @@ static class Program
         bool renderMode = (a.Length >= 2 && a[0] == "--render");
         bool interactive = !dumpMode && !renderMode;
 
-        // 语言优先级：命令行 > 存档 > 系统语言
+        // Language priority: command line > saved setting > system language
         bool startEn;
         if (langArg != null) startEn = langArg.StartsWith("en");
         else
@@ -526,7 +526,7 @@ static class Program
         form.AutoScaleMode = AutoScaleMode.None;
         form.Font = new Font("Microsoft YaHei UI", 9f);
 
-        // ---------- 自适应网格：按显示器数量和屏幕大小决定几列几行 ----------
+        // ---------- Adaptive grid: pick rows/columns from monitor count and screen size ----------
         const int grpW = 476, grpH = 132, rowH = 140, topPad = 12, sidePad = 12, gapX = 12;
         const int colW = grpW + gapX;      // 488
         const int bottomH = 96;
@@ -549,7 +549,7 @@ static class Program
         int clientW = Math.Min(contentW, maxW);
         int clientH = Math.Min(scrollContentH + bottomH, maxH);
 
-        // 先显示一个"正在识别"的窗口，边读边填 —— 显示器多的时候不至于白屏假死
+        // Show a "detecting" window immediately and fill it in as we read, so many monitors do not look like a hang
         Label loading = null;
         if (interactive)
         {
@@ -578,7 +578,7 @@ static class Program
 
         for (int d = 1; d <= monitors; d++)
         {
-            int c = (d - 1) / rows;          // 先竖着排，排满一列再排下一列
+            int c = (d - 1) / rows;          // fill top-to-bottom, then start the next column
             int r = (d - 1) % rows;
 
             GroupBox grp = new GroupBox();
@@ -597,12 +597,12 @@ static class Program
                 Label ln = new Label();
                 ln.Text = names[i];
                 ln.Location = new Point(12, ys[i] + 6);
-                ln.Size = new Size(78, 20);       // 78 是为了放得下英文 "Brightness" / "Contrast"
+                ln.Size = new Size(78, 20);       // 78px wide so the English words "Brightness" / "Contrast" are not clipped
                 grp.Controls.Add(ln);
 
                 int? o = GetVcp(d, codes[i]);
 
-                // getvcp 不返回最大值，只能从读到的值猜：>100 基本就是 0-255 进制
+                // getvcp does not report the maximum, so infer it from the current value: >100 means a 0-255 scale
                 int initMax = (o.HasValue && o.Value > 100) ? 255 : 100;
 
                 TrackBar bar = new TrackBar();
@@ -701,10 +701,10 @@ static class Program
                 UpdateSrcLabel(sr2);
             };
 
-            if (interactive) Application.DoEvents();     // 让每台显示器一读完就现出来
+            if (interactive) Application.DoEvents();     // let each monitor appear as soon as it has been read
         }
 
-        // ---------- 底部：按钮常驻（不随显示器数量被顶出屏幕） ----------
+        // ---------- Bottom bar: buttons stay pinned (never pushed off-screen by monitor count) ----------
         int btnW = 100, btnH = 32, gapB = 10;
         int totalBtnW = btnW * 4 + gapB * 3;
         int bx = Math.Max(sidePad, (clientW - totalBtnW) / 2);
@@ -776,9 +776,9 @@ static class Program
         pnlScroll.Bounds = new Rectangle(0, 0, clientW, clientH - bottomH);
         pnlBottom.Bounds = new Rectangle(0, clientH - bottomH, clientW, bottomH);
 
-        bool applying = false;   // 语言刷新期间抑制下拉框事件，避免递归
+        bool applying = false;   // suppresses combo-box events while the language is applied, to avoid recursion
 
-        // 量程：0=自动（按读到的原值判断），100 / 255 = 强制
+        // Range: 0 = auto (infer from the value read), 100 / 255 = forced
         Action ApplyRanges = delegate
         {
             int ov = 0;
@@ -794,7 +794,7 @@ static class Program
             }
         };
 
-        // 用当前语言刷新所有已存在的控件文字
+        // refresh every existing control with the current language
         Action ApplyLanguage = delegate
         {
             applying = true;
@@ -887,7 +887,7 @@ static class Program
 
         bClose.Click += delegate { form.Close(); };
 
-        // ---- dump / render 的输出固定英文，方便脚本解析，不受界面语言影响 ----
+        // ---- dump / render output is always English so scripts can parse it, independent of the UI language ----
         if (dumpMode)
         {
             StringBuilder sb = new StringBuilder();

@@ -12,8 +12,17 @@ Windows 標準の明るさスライダーとは別物です。そのため、外
 C# WinForms のネイティブ単体実行ファイルで、スクリプトホストは一切使いません
 （bat / ps1 / PowerShell 不要）。
 
-> このリポジトリには**ソースコード**と**ビルド済み exe** のみが含まれます。
+> このリポジトリには**ソースコード**のみを置いています。ビルド済みの `MonitorAdjust.exe` は
+> [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases) で配布しています（[ダウンロード](#ダウンロード)参照）。
 > 実行には別途 `winddcutil.exe` が必要です（[動作要件](#動作要件)を参照）。
+
+## ダウンロード
+
+最新版は [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases) から：
+
+1. Releases から `MonitorAdjust.exe` をダウンロード
+2. [ubihazard/winddcutil](https://github.com/ubihazard/winddcutil) から `winddcutil.exe` をダウンロード
+3. 2 つのファイルを同じフォルダーに置き、`MonitorAdjust.exe` を実行
 
 ## 機能
 
@@ -42,13 +51,13 @@ UI は**中国語と English を実行中に切り替え**られます。ウィ�
 - コマンドラインで強制することもできます:
 
 ```powershell
-.\显示器调节.exe --lang en
+.\MonitorAdjust.exe --lang en
 ```
 
 ## 動作要件
 
 [**winddcutil**](https://github.com/ubihazard/winddcutil)（ddcutil の Windows 移植版、
-PyInstaller 製の単体実行ファイル）が必要です。**`显示器调节.exe` と同じフォルダーに置いてください。**
+PyInstaller 製の単体実行ファイル）が必要です。**`MonitorAdjust.exe` と同じフォルダーに置いてください。**
 
 プログラムは次の順に探します: exe と同じフォルダー → exe 隣の `winddcutil\` サブフォルダー →
 カレントディレクトリ → `PATH`。
@@ -57,8 +66,8 @@ PyInstaller 製の単体実行ファイル）が必要です。**`显示器调�
 
 ## 使い方
 
-1. `显示器调节.exe` と `winddcutil.exe` を同じフォルダーに置く
-2. `显示器调节.exe` をダブルクリック
+1. `MonitorAdjust.exe` と `winddcutil.exe` を同じフォルダーに置く
+2. `MonitorAdjust.exe` をダブルクリック
 3. スライダーを動かして「適用」をクリック
 
 注意:
@@ -77,32 +86,32 @@ Windows 同梱の .NET Framework コンパイラーを使います。**Visual St
 ```powershell
 & "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
   /nologo /target:winexe /codepage:65001 `
-  /out:"显示器调节.exe" `
+  /out:"MonitorAdjust.exe" `
   /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
-  "显示器调节.cs"
+  "MonitorAdjust.cs"
 ```
 
 - `/target:winexe` — コンソールウィンドウを出さない
 - `/codepage:65001` — ソースは UTF-8 です。**この指定は必須**で、付けないと中国語文字列が文字化けします
-- 出力ファイル名は `显示器调节.exe` のままにしてください（アセンブリ名がファイル名から取られます）
+- 出力ファイル名は `MonitorAdjust.exe` のままにしてください（アセンブリ名がファイル名から取られます）
 
 ## 隠しオプション（デバッグ用）
 
 ```powershell
 # セルフチェック: 読み取った値をテキストに書き出す（ウィンドウを表示しない）
-Start-Process ".\显示器调节.exe" -ArgumentList '--dump','dump.txt' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--dump','dump.txt' -Wait
 
 # オフスクリーン描画: 画面外に描いて PNG 保存。レイアウト確認用
-Start-Process ".\显示器调节.exe" -ArgumentList '--render','preview.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--render','preview.png' -Wait
 
 # ダミーデータモード: winddcutil を一切呼ばず、ダミーデータで UI を描画（1〜16 台）
-Start-Process ".\显示器调节.exe" -ArgumentList '--fake','6','--render','n6.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--fake','6','--render','n6.png' -Wait
 
 # 画面が小さいふりをして、多モニター時のレイアウトを確認
-Start-Process ".\显示器调节.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
 
 # UI 言語を強制（zh / en）。2 種類のスクリーンショット比較用
-Start-Process ".\显示器调节.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
 ```
 
 `--fake` は書き込みもすべてブロックするため、**実際のモニターを書き換えることはありません**。

@@ -10,8 +10,17 @@
 
 原生 C# WinForms 单文件程序，不含任何脚本宿主（不用 bat / ps1 / PowerShell）。
 
-> 本仓库只包含**源代码**和**编译好的 exe**。
+> 本仓库只放**源代码**。编译好的 `MonitorAdjust.exe` 发布在
+> [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases) 里，见[下载](#下载)。
 > 运行还需要另外准备 `winddcutil.exe`（见[运行依赖](#运行依赖)）。
+
+## 下载
+
+到 [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases) 下载最新版：
+
+1. 从 Releases 下载 `MonitorAdjust.exe`
+2. 从 [ubihazard/winddcutil](https://github.com/ubihazard/winddcutil) 下载 `winddcutil.exe`
+3. 两个文件放进同一个文件夹，双击 `MonitorAdjust.exe`
 
 ## 功能
 
@@ -35,13 +44,13 @@
 - 也可以用命令行强制启动语言：
 
 ```powershell
-.\显示器调节.exe --lang en
+.\MonitorAdjust.exe --lang en
 ```
 
 ## 运行依赖
 
 需要 [**winddcutil**](https://github.com/ubihazard/winddcutil)（ddcutil 的 Windows 移植版，
-一个 PyInstaller 单文件程序），**放在和 `显示器调节.exe` 同一个目录下**。
+一个 PyInstaller 单文件程序），**放在和 `MonitorAdjust.exe` 同一个目录下**。
 
 程序会按这个顺序找它：exe 同目录 → exe 同目录的 `winddcutil\` 子目录 → 当前目录 → `PATH`。
 
@@ -49,8 +58,8 @@
 
 ## 使用方法
 
-1. 把 `显示器调节.exe` 和 `winddcutil.exe` 放进同一个文件夹
-2. 双击 `显示器调节.exe`
+1. 把 `MonitorAdjust.exe` 和 `winddcutil.exe` 放进同一个文件夹
+2. 双击 `MonitorAdjust.exe`
 3. 拖动滑块后点「应用」
 
 注意事项：
@@ -68,32 +77,32 @@
 ```powershell
 & "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
   /nologo /target:winexe /codepage:65001 `
-  /out:"显示器调节.exe" `
+  /out:"MonitorAdjust.exe" `
   /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
-  "显示器调节.cs"
+  "MonitorAdjust.cs"
 ```
 
 - `/target:winexe` 不弹控制台窗口
 - `/codepage:65001` 源码是 UTF-8，**必须加**，否则中文字符串会乱码
-- 输出文件名请保持 `显示器调节.exe`：程序集名取自文件名
+- 输出文件名请保持 `MonitorAdjust.exe`：程序集名取自文件名
 
 ## 隐藏参数（调试用）
 
 ```powershell
 # 自检：把读到的数值写成文本，不显示窗口
-Start-Process ".\显示器调节.exe" -ArgumentList '--dump','dump.txt' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--dump','dump.txt' -Wait
 
 # 离屏渲染：窗口画在屏幕外，截图存 PNG，用来检查排版
-Start-Process ".\显示器调节.exe" -ArgumentList '--render','preview.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--render','preview.png' -Wait
 
 # 假数据模式：完全不调用 winddcutil，用编造的数据画界面（1~16 台）
-Start-Process ".\显示器调节.exe" -ArgumentList '--fake','6','--render','n6.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--fake','6','--render','n6.png' -Wait
 
 # 模拟小屏幕，验证多显示器下的排版
-Start-Process ".\显示器调节.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
 
 # 指定启动语言（zh / en），用于截图对比两套界面
-Start-Process ".\显示器调节.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
 ```
 
 `--fake` 会连写入操作一起挡掉，**不会误改真实显示器**。

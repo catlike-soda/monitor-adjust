@@ -1,19 +1,22 @@
-# 分发包：内含第三方 winddcutil.exe（7.6 MB）与本 exe 的副本，不适合进仓库
-分发包/
-分发包.zip
+# Release package folder: bundles the 7.6 MB third-party winddcutil.exe plus a copy of our exe
+release/
+release.zip
 
-# 界面预览图（二进制截图）
-预览图/
+# Build output: the exe is distributed through GitHub Releases, not committed here
+MonitorAdjust.exe
 
-# 历史版本、已废弃的 ps1/bat 方案、程序运行日志
-历史版本与废弃方案/
+# Third-party CLI; may be dropped here for testing, never committed
+winddcutil.exe
 
-# 交接文档：里面有本机文件路径、计算机名、显示器型号等个人信息，公开仓库不收录
-交接文档-显示器调节.md
-
-# 运行期产物：程序自己生成的日志和语言设置
+# Runtime artefacts written by the program itself
 gui-log.txt
 monitor-adjust.ini
 
-# 第三方 CLI，测试时可能放在这里，但不进仓库
-winddcutil.exe
+# Screenshots (binary)
+previews/
+
+# Archived old builds and the abandoned ps1/bat launchers
+legacy/
+
+# Handover notes: contain machine paths, computer name and monitor model info - not for a public repo
+HANDOVER.zh-CN.md

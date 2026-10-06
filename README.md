@@ -11,8 +11,17 @@ controls the OS slider cannot reach, are all adjustable.
 
 Native single-file C# WinForms program, with no script host involved (no bat / ps1 / PowerShell).
 
-> This repository contains the **source code** and a **prebuilt exe** only.
+> This repository holds the **source code**. The compiled `MonitorAdjust.exe` is published under
+> [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases) - see [Download](#download).
 > Running it also requires `winddcutil.exe` (see [Requirements](#requirements)).
+
+## Download
+
+Get the latest build from [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases):
+
+1. Download `MonitorAdjust.exe` from Releases
+2. Download `winddcutil.exe` from [ubihazard/winddcutil](https://github.com/ubihazard/winddcutil)
+3. Put both files in the same folder and run `MonitorAdjust.exe`
 
 ## Features
 
@@ -37,13 +46,13 @@ bottom of the window. The change is instant and your choice is remembered.
 - You can also force the language from the command line:
 
 ```powershell
-.\显示器调节.exe --lang en
+.\MonitorAdjust.exe --lang en
 ```
 
 ## Requirements
 
 You need [**winddcutil**](https://github.com/ubihazard/winddcutil) (a Windows port of ddcutil,
-shipped as a PyInstaller single-file program), placed **in the same folder as `显示器调节.exe`**.
+shipped as a PyInstaller single-file program), placed **in the same folder as `MonitorAdjust.exe`**.
 
 The program looks for it in this order: same folder as the exe → a `winddcutil\` subfolder next to
 the exe → the current directory → `PATH`.
@@ -53,8 +62,8 @@ rights needed.
 
 ## Usage
 
-1. Put `显示器调节.exe` and `winddcutil.exe` in the same folder
-2. Double-click `显示器调节.exe`
+1. Put `MonitorAdjust.exe` and `winddcutil.exe` in the same folder
+2. Double-click `MonitorAdjust.exe`
 3. Drag the sliders and click "Apply"
 
 Notes:
@@ -73,33 +82,33 @@ Use the .NET Framework compiler that ships with Windows — **Visual Studio is n
 ```powershell
 & "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
   /nologo /target:winexe /codepage:65001 `
-  /out:"显示器调节.exe" `
+  /out:"MonitorAdjust.exe" `
   /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
-  "显示器调节.cs"
+  "MonitorAdjust.cs"
 ```
 
 - `/target:winexe` — no console window
 - `/codepage:65001` — the source is UTF-8 and **this flag is required**, otherwise the Chinese
   string literals come out as mojibake
-- Keep the output file name `显示器调节.exe`: the assembly name is taken from it
+- Keep the output file name `MonitorAdjust.exe`: the assembly name is taken from it
 
 ## Hidden flags (debugging)
 
 ```powershell
 # Self-check: write the values it read into a text file, without showing a window
-Start-Process ".\显示器调节.exe" -ArgumentList '--dump','dump.txt' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--dump','dump.txt' -Wait
 
 # Off-screen render: draw the window off-screen and save a PNG, to check the layout
-Start-Process ".\显示器调节.exe" -ArgumentList '--render','preview.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--render','preview.png' -Wait
 
 # Fake data mode: never calls winddcutil, draws the UI from made-up data (1-16 monitors)
-Start-Process ".\显示器调节.exe" -ArgumentList '--fake','6','--render','n6.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--fake','6','--render','n6.png' -Wait
 
 # Pretend the screen is small, to check the layout with many monitors
-Start-Process ".\显示器调节.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
 
 # Force the UI language (zh / en), e.g. to capture both versions
-Start-Process ".\显示器调节.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
+Start-Process ".\MonitorAdjust.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
 ```
 
 `--fake` also blocks every write, so it **can never change a real monitor**.
