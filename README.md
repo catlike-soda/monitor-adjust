@@ -1,4 +1,7 @@
-# 显示器调节
+# 显示器调节 · monitor-adjust
+
+**A native Windows GUI to adjust monitor brightness, contrast and input source over DDC/CI.**
+通过 DDC/CI 直接控制显示器硬件的亮度、对比度与输入信号源，自动识别任意数量的显示器。
 
 一个 Windows 桌面小工具，用来直接控制显示器的**亮度、对比度**和**切换输入信号源**。
 走 DDC/CI 协议，调的是显示器硬件本身，和 Windows 自带的亮度滑块不是一回事 ——
