@@ -14,6 +14,7 @@
 
 ## 功能
 
+- 界面**中文 / English 实时切换**（见下）
 - 自动识别接入的显示器数量，**插几台认几台**；界面按屏幕大小自适应排布，显示器多时自动分列 / 滚动
 - 每台显示器独立调节：亮度、对比度
 - 切换输入信号源（HDMI / DP / DVI / VGA / 分量 等），带二次确认
@@ -21,6 +22,19 @@
 - 「恢复原值」回到打开窗口那一刻的数值
 - 「重新读取」刷新全部数值，并把当前值记为新的「原值」
 - 亮度量程支持 0-100 / 0-255：默认自动识别，也可手动指定
+
+## 界面语言 / Language
+
+界面支持**中文 / English 实时切换**：窗口底部「语言 / Language」下拉框里选，切换即时生效，选择会被记住。
+
+- **首次运行**按系统语言自动判断：中文系统用中文，其它用 English
+- 选择保存在 exe 同目录的 `monitor-adjust.ini`；该目录不可写时（例如装在 Program Files）自动退到
+  `%LOCALAPPDATA%\monitor-adjust\settings.ini`
+- 也可以用命令行强制启动语言：
+
+```powershell
+.\显示器调节.exe --lang en
+```
 
 ## 运行依赖
 
@@ -75,6 +89,9 @@ Start-Process ".\显示器调节.exe" -ArgumentList '--fake','6','--render','n6.
 
 # 模拟小屏幕，验证多显示器下的排版
 Start-Process ".\显示器调节.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
+
+# 指定启动语言（zh / en），用于截图对比两套界面
+Start-Process ".\显示器调节.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
 ```
 
 `--fake` 会连写入操作一起挡掉，**不会误改真实显示器**。

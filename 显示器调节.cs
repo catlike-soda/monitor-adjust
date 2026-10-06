@@ -13,6 +13,7 @@ class Row
     public string Code;
     public TrackBar Bar;
     public Label Value;
+    public Label NameLabel;
     public int Original = -1;
     public int Max = 100;          // 滑块量程上限：不同显示器进制可能不同（0-100 / 0-255）
 }
@@ -21,10 +22,103 @@ class SrcRow
 {
     public int Display;
     public ComboBox Combo;
+    public Button SwitchButton;
     public Label Value;
+    public Label NameLabel;
     public List<int> Options = new List<int>();
     public int Current = -1;
     public bool Guessed = false;
+}
+
+// 界面文案：中英文两套。Set() 一次性全量赋值，切换时再刷新已存在的控件即可。
+static class L
+{
+    public static bool En = false;
+
+    public static string Title, Monitor, Brightness, Contrast, InputSource;
+    public static string Apply, Restore, Reload, Close, Switch;
+    public static string RangeLabel, RangeAuto, LanguageLabel;
+    public static string FmtNowWas, FmtNow, ReadFailed, Hint;
+    public static string NoCliTitle, NoCli, NoMonitor, SwitchTitle, FmtAlreadyThere, FmtConfirmSwitch;
+    public static string FmtApplied, FmtRestored, FmtRefreshed, FakeNote, FakeNoteShort, FmtLoading;
+    public static string SourceComponent, SourceInputPrefix;
+
+    public static void Set(bool en)
+    {
+        En = en;
+        if (en)
+        {
+            Title = "Monitor Adjust - Brightness / Contrast / Input";
+            Monitor = "Monitor";
+            Brightness = "Brightness";
+            Contrast = "Contrast";
+            InputSource = "Input";
+            Apply = "Apply";
+            Restore = "Restore";
+            Reload = "Refresh";
+            Close = "Close";
+            Switch = "Switch";
+            RangeLabel = "Range:";
+            RangeAuto = "Auto";
+            LanguageLabel = "Language:";
+            FmtNowWas = "Now {0} (was {1})";
+            FmtNow = "Now {0}";
+            ReadFailed = "n/a";
+            Hint = "\"was\" = value when this window opened; use Switch to change input source";
+            NoCliTitle = "Monitor Adjust";
+            NoCli = "winddcutil.exe not found.\n\nPut it in the same folder as this program, then run again.";
+            NoMonitor = "No DDC/CI capable monitor was detected.";
+            SwitchTitle = "Switch input source";
+            FmtAlreadyThere = "Monitor {0} is already on {1}.";
+            FmtConfirmSwitch = "Switch monitor {0} to {1} (0x{2})?\n\n" +
+                "Warning: if nothing is connected to that port, the display will go black or show \"no signal\", " +
+                "and this program may not be able to switch it back - you would have to use the monitor's own buttons.";
+            FmtApplied = "Sent brightness/contrast for {0} item(s) to the monitors ({1})";
+            FmtRestored = "Restored the values from when the window opened ({0} item(s))";
+            FmtRefreshed = "Refreshed (including input source); the current values are now the \"was\" values ({0})";
+            FakeNote = "  [fake data mode - nothing was actually sent]";
+            FakeNoteShort = "  [fake data mode]";
+            FmtLoading = "Detecting monitors, please wait... ({0} found)";
+            SourceComponent = "Component-";
+            SourceInputPrefix = "Input 0x";
+        }
+        else
+        {
+            Title = "显示器调节 - 亮度 / 对比度 / 信号源";
+            Monitor = "显示器";
+            Brightness = "亮度";
+            Contrast = "对比度";
+            InputSource = "信号源";
+            Apply = "应用";
+            Restore = "恢复原值";
+            Reload = "重新读取";
+            Close = "关闭";
+            Switch = "切换";
+            RangeLabel = "亮度量程：";
+            RangeAuto = "自动检测";
+            LanguageLabel = "语言：";
+            FmtNowWas = "当前 {0}（原值 {1}）";
+            FmtNow = "当前 {0}";
+            ReadFailed = "读取失败";
+            Hint = "原值 = 打开窗口时的数值；信号源用「切换」按钮单独切换";
+            NoCliTitle = "显示器调节";
+            NoCli = "找不到 winddcutil.exe。\n\n请把它和本程序放在同一个文件夹里再运行。";
+            NoMonitor = "没有检测到支持 DDC/CI 的显示器。";
+            SwitchTitle = "切换信号源";
+            FmtAlreadyThere = "「显示器 {0}」现在就已经是 {1} 了。";
+            FmtConfirmSwitch = "把「显示器 {0}」切换到 {1}（0x{2}）？\n\n" +
+                "注意：如果那个接口上没接设备，显示器会黑屏或显示「无信号」，\n" +
+                "而且软件可能无法再切回来，需要用显示器自己的按键切回去。";
+            FmtApplied = "已把 {0} 项亮度/对比度设置发送给显示器（{1}）";
+            FmtRestored = "已恢复到打开窗口时的数值（{0} 项）";
+            FmtRefreshed = "已重新读取（含信号源），并把当前数值记为新的原值（{0}）";
+            FakeNote = "  [假数据模式，并没有真的发送]";
+            FakeNoteShort = "  [假数据模式]";
+            FmtLoading = "正在识别显示器，请稍候…（共 {0} 台）";
+            SourceComponent = "分量-";
+            SourceInputPrefix = "输入源 0x";
+        }
+    }
 }
 
 static class Program
@@ -131,6 +225,7 @@ static class Program
         Run("setvcp " + display + " " + code + " " + value.ToString());
     }
 
+    // 接口名两套语言基本都写英文缩写，只有「分量」和兜底名需要跟着切
     static string SourceName(int v)
     {
         switch (v)
@@ -146,9 +241,9 @@ static class Program
             case 0x09: return "TV-1";
             case 0x0A: return "TV-2";
             case 0x0B: return "TV-3";
-            case 0x0C: return "分量-1";
-            case 0x0D: return "分量-2";
-            case 0x0E: return "分量-3";
+            case 0x0C: return L.SourceComponent + "1";
+            case 0x0D: return L.SourceComponent + "2";
+            case 0x0E: return L.SourceComponent + "3";
             case 0x0F: return "DP-1";
             case 0x10: return "DP-2";
             case 0x11: return "HDMI-1";
@@ -158,7 +253,7 @@ static class Program
             case 0x15: return "MDDI";
             case 0x16: return "DP-3";
             case 0x17: return "DP-4";
-            default: return "输入源 0x" + v.ToString("X2");
+            default: return L.SourceInputPrefix + v.ToString("X2");
         }
     }
 
@@ -191,14 +286,14 @@ static class Program
 
     static void UpdateLabel(Row r)
     {
-        string o = (r.Original < 0) ? "读取失败" : r.Original.ToString();
-        r.Value.Text = "当前 " + r.Bar.Value + "（原值 " + o + "）";
+        string o = (r.Original < 0) ? L.ReadFailed : r.Original.ToString();
+        r.Value.Text = string.Format(L.FmtNowWas, r.Bar.Value, o);
     }
 
     static void UpdateSrcLabel(SrcRow s)
     {
-        if (s.Current < 0) s.Value.Text = "当前 读取失败";
-        else s.Value.Text = "当前 " + SourceName(s.Current);
+        if (s.Current < 0) s.Value.Text = string.Format(L.FmtNow, L.ReadFailed);
+        else s.Value.Text = string.Format(L.FmtNow, SourceName(s.Current));
     }
 
     static void FillCombo(SrcRow s)
@@ -212,7 +307,7 @@ static class Program
     }
 
     // winddcutil 只装在 exe 自己旁边（分发包就是这样），其次是子目录 / 当前目录 / PATH。
-    // 不再写死任何个人机器上的路径。
+    // 不写死任何个人机器上的路径。
     static string FindCli()
     {
         List<string> cands = new List<string>();
@@ -248,14 +343,68 @@ static class Program
         return null;
     }
 
+    // ---- 语言选择的持久化：先试 exe 同目录（便携），不行再退到 %LOCALAPPDATA% ----
+    static string[] SettingsFiles()
+    {
+        string local = "";
+        try
+        {
+            local = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "monitor-adjust");
+        }
+        catch { }
+        return new string[] {
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "monitor-adjust.ini"),
+            Path.Combine(local, "settings.ini")
+        };
+    }
+
+    static bool? LoadLangSetting()
+    {
+        foreach (string f in SettingsFiles())
+        {
+            try
+            {
+                if (!File.Exists(f)) continue;
+                foreach (string line in File.ReadAllLines(f))
+                {
+                    string s = line.Trim();
+                    if (s.StartsWith("lang=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string v = s.Substring(5).Trim().ToLowerInvariant();
+                        if (v.StartsWith("en")) return true;
+                        if (v.StartsWith("zh")) return false;
+                    }
+                }
+            }
+            catch { }
+        }
+        return null;
+    }
+
+    static void SaveLangSetting(bool en)
+    {
+        foreach (string f in SettingsFiles())
+        {
+            try
+            {
+                string d = Path.GetDirectoryName(f);
+                if (!string.IsNullOrEmpty(d) && !Directory.Exists(d)) Directory.CreateDirectory(d);
+                File.WriteAllText(f, "lang=" + (en ? "en" : "zh") + "\r\n", Encoding.ASCII);
+                return;
+            }
+            catch { }
+        }
+    }
+
     [STAThread]
     static void Main(string[] args)
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 
-        // 先把 --fake N 摘出来，剩下的参数按原来的规则解释
+        // 先把 --fake N / --screen WxH / --lang xx 摘出来，剩下的参数按原来的规则解释
         List<string> rest = new List<string>();
+        string langArg = null;
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "--fake" && i + 1 < args.Length)
@@ -280,6 +429,12 @@ static class Program
                 i++;
                 continue;
             }
+            if (args[i] == "--lang" && i + 1 < args.Length)
+            {
+                langArg = args[i + 1].Trim().ToLowerInvariant();
+                i++;
+                continue;
+            }
             rest.Add(args[i]);
         }
         string[] a = rest.ToArray();
@@ -288,11 +443,27 @@ static class Program
         bool renderMode = (a.Length >= 2 && a[0] == "--render");
         bool interactive = !dumpMode && !renderMode;
 
-        Log("=== Main args=" + string.Join("|", args) + (FakeMode ? "   [FAKE " + FakeMonitors + "]" : ""));
+        // 语言优先级：命令行 > 存档 > 系统语言
+        bool startEn;
+        if (langArg != null) startEn = langArg.StartsWith("en");
+        else
+        {
+            bool? saved = LoadLangSetting();
+            if (saved.HasValue) startEn = saved.Value;
+            else
+            {
+                try { startEn = !System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("zh", StringComparison.OrdinalIgnoreCase); }
+                catch { startEn = false; }
+            }
+        }
+        L.Set(startEn);
+
+        Log("=== Main args=" + string.Join("|", args) +
+            (FakeMode ? "   [FAKE " + FakeMonitors + "]" : "") + "   [lang=" + (L.En ? "en" : "zh") + "]");
 
         if (FakeMode)
         {
-            CliPath = "(假数据模式，不调用 winddcutil)";
+            CliPath = "(fake data mode, winddcutil not called)";
             CliTempDir = Path.GetTempPath();
         }
         else
@@ -301,10 +472,9 @@ static class Program
             if (CliPath == null)
             {
                 Log("CliPath NOT FOUND");
-                if (dumpMode) { File.WriteAllText(a[1], "错误：找不到 winddcutil.exe。\r\n请把它和本程序放在同一个文件夹里。\r\n", Encoding.UTF8); return; }
+                if (dumpMode) { File.WriteAllText(a[1], "ERROR: winddcutil.exe not found.\r\nPut it in the same folder as this program.\r\n", Encoding.UTF8); return; }
                 if (renderMode) return;
-                MessageBox.Show("找不到 winddcutil.exe。\n\n请把它和本程序放在同一个文件夹里再运行。",
-                    "显示器调节", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(L.NoCli, L.NoCliTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             Log("CliPath=" + CliPath);
@@ -338,17 +508,17 @@ static class Program
         Log("monitors=" + monitors);
         if (monitors < 1)
         {
-            string msg = "没有检测到支持 DDC/CI 的显示器。\r\nCLI = " + CliPath +
-                         "\r\n（如果是在受限沙箱里跑，winddcutil 可能无法启动，请换完整权限的终端重试。）\r\n";
+            string msg = L.NoMonitor + "\r\nCLI = " + CliPath +
+                         "\r\n(If this runs inside a restricted sandbox, winddcutil may fail to start.)\r\n";
             Log("no monitors");
             if (dumpMode) { File.WriteAllText(a[1], msg, Encoding.UTF8); return; }
             if (renderMode) return;
-            MessageBox.Show(msg, "显示器调节", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(msg, L.NoCliTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
         Form form = new Form();
-        form.Text = "显示器调节 - 亮度 / 对比度 / 信号源";
+        form.Text = L.Title;
         form.FormBorderStyle = FormBorderStyle.FixedDialog;
         form.MaximizeBox = false;
         form.MinimizeBox = false;
@@ -384,7 +554,7 @@ static class Program
         if (interactive)
         {
             loading = new Label();
-            loading.Text = "正在识别显示器，请稍候…（共 " + monitors + " 台）";
+            loading.Text = string.Format(L.FmtLoading, monitors);
             loading.Location = new Point(16, 40);
             loading.Size = new Size(460, 24);
             form.Controls.Add(loading);
@@ -404,6 +574,7 @@ static class Program
 
         List<Row> rowsList = new List<Row>();
         List<SrcRow> srcs = new List<SrcRow>();
+        List<GroupBox> groups = new List<GroupBox>();
 
         for (int d = 1; d <= monitors; d++)
         {
@@ -411,12 +582,13 @@ static class Program
             int r = (d - 1) % rows;
 
             GroupBox grp = new GroupBox();
-            grp.Text = "显示器 " + d;
+            grp.Text = L.Monitor + " " + d;
             grp.Location = new Point(sidePad + c * colW, topPad + r * rowH);
             grp.Size = new Size(grpW, grpH);
             pnlScroll.Controls.Add(grp);
+            groups.Add(grp);
 
-            string[] names = { "亮度", "对比度" };
+            string[] names = { L.Brightness, L.Contrast };
             string[] codes = { "0x10", "0x12" };
             int[] ys = { 22, 58 };
 
@@ -424,8 +596,8 @@ static class Program
             {
                 Label ln = new Label();
                 ln.Text = names[i];
-                ln.Location = new Point(14, ys[i] + 6);
-                ln.Size = new Size(50, 20);
+                ln.Location = new Point(12, ys[i] + 6);
+                ln.Size = new Size(78, 20);       // 78 是为了放得下英文 "Brightness" / "Contrast"
                 grp.Controls.Add(ln);
 
                 int? o = GetVcp(d, codes[i]);
@@ -439,14 +611,14 @@ static class Program
                 bar.TickFrequency = (initMax == 255) ? 25 : 10;
                 bar.SmallChange = 1;
                 bar.LargeChange = 5;
-                bar.Location = new Point(66, ys[i]);
-                bar.Size = new Size(250, 36);
+                bar.Location = new Point(92, ys[i]);
+                bar.Size = new Size(228, 36);
                 if (o.HasValue) bar.Value = Math.Max(0, Math.Min(initMax, o.Value));
                 grp.Controls.Add(bar);
 
                 Label lv = new Label();
-                lv.Location = new Point(322, ys[i] + 6);
-                lv.Size = new Size(150, 20);
+                lv.Location = new Point(324, ys[i] + 6);
+                lv.Size = new Size(146, 20);
                 grp.Controls.Add(lv);
 
                 Row rw = new Row();
@@ -454,6 +626,7 @@ static class Program
                 rw.Code = codes[i];
                 rw.Bar = bar;
                 rw.Value = lv;
+                rw.NameLabel = ln;
                 rw.Original = o.HasValue ? o.Value : -1;
                 rw.Max = initMax;
                 rowsList.Add(rw);
@@ -468,26 +641,28 @@ static class Program
             }
 
             Label ls = new Label();
-            ls.Text = "信号源";
-            ls.Location = new Point(14, 104);
-            ls.Size = new Size(50, 20);
+            ls.Text = L.InputSource;
+            ls.Location = new Point(12, 104);
+            ls.Size = new Size(78, 20);
             grp.Controls.Add(ls);
 
             SrcRow sr = new SrcRow();
             sr.Display = d;
+            sr.NameLabel = ls;
 
             ComboBox combo = new ComboBox();
             combo.DropDownStyle = ComboBoxStyle.DropDownList;
-            combo.Location = new Point(66, 100);
-            combo.Size = new Size(210, 24);
+            combo.Location = new Point(92, 100);
+            combo.Size = new Size(184, 24);
             grp.Controls.Add(combo);
             sr.Combo = combo;
 
             Button btnSwitch = new Button();
-            btnSwitch.Text = "切换";
+            btnSwitch.Text = L.Switch;
             btnSwitch.Location = new Point(282, 99);
             btnSwitch.Size = new Size(70, 26);
             grp.Controls.Add(btnSwitch);
+            sr.SwitchButton = btnSwitch;
 
             Label lsrc = new Label();
             lsrc.Location = new Point(358, 104);
@@ -513,15 +688,13 @@ static class Program
                 int target = sr2.Options[sr2.Combo.SelectedIndex];
                 if (target == sr2.Current)
                 {
-                    MessageBox.Show("「显示器 " + sr2.Display + "」现在就已经是 " + SourceName(target) + " 了。",
-                        "切换信号源", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(string.Format(L.FmtAlreadyThere, sr2.Display, SourceName(target)),
+                        L.SwitchTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
                 DialogResult dr = MessageBox.Show(
-                    "把「显示器 " + sr2.Display + "」切换到 " + SourceName(target) + "（0x" + target.ToString("X2") + "）？\n\n" +
-                    "注意：如果那个接口上没接设备，显示器会黑屏或显示「无信号」，\n" +
-                    "而且软件可能无法再切回来，需要用显示器自己的按键切回去。",
-                    "切换信号源", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                    string.Format(L.FmtConfirmSwitch, sr2.Display, SourceName(target), target.ToString("X2")),
+                    L.SwitchTitle, MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
                 if (dr != DialogResult.OK) return;
                 SetVcp(sr2.Display, "0x60", target);
                 sr2.Current = target;
@@ -537,31 +710,31 @@ static class Program
         int bx = Math.Max(sidePad, (clientW - totalBtnW) / 2);
 
         Button bApply = new Button();
-        bApply.Text = "应用";
+        bApply.Text = L.Apply;
         bApply.Location = new Point(bx, 8);
         bApply.Size = new Size(btnW, btnH);
         pnlBottom.Controls.Add(bApply);
 
         Button bRestore = new Button();
-        bRestore.Text = "恢复原值";
+        bRestore.Text = L.Restore;
         bRestore.Location = new Point(bx + (btnW + gapB), 8);
         bRestore.Size = new Size(btnW, btnH);
         pnlBottom.Controls.Add(bRestore);
 
         Button bReload = new Button();
-        bReload.Text = "重新读取";
+        bReload.Text = L.Reload;
         bReload.Location = new Point(bx + (btnW + gapB) * 2, 8);
         bReload.Size = new Size(btnW, btnH);
         pnlBottom.Controls.Add(bReload);
 
         Button bClose = new Button();
-        bClose.Text = "关闭";
+        bClose.Text = L.Close;
         bClose.Location = new Point(bx + (btnW + gapB) * 3, 8);
         bClose.Size = new Size(btnW, btnH);
         pnlBottom.Controls.Add(bClose);
 
         Label lRange = new Label();
-        lRange.Text = "亮度量程：";
+        lRange.Text = L.RangeLabel;
         lRange.Location = new Point(12, 50);
         lRange.Size = new Size(76, 20);
         pnlBottom.Controls.Add(lRange);
@@ -570,23 +743,40 @@ static class Program
         cmbRange.DropDownStyle = ComboBoxStyle.DropDownList;
         cmbRange.Location = new Point(90, 46);
         cmbRange.Size = new Size(86, 24);
-        cmbRange.Items.Add("自动检测");
+        cmbRange.Items.Add(L.RangeAuto);
         cmbRange.Items.Add("0-100");
         cmbRange.Items.Add("0-255");
         cmbRange.SelectedIndex = 0;
         pnlBottom.Controls.Add(cmbRange);
 
+        Label lLang = new Label();
+        lLang.Text = L.LanguageLabel;
+        lLang.Location = new Point(196, 50);
+        lLang.Size = new Size(72, 20);
+        pnlBottom.Controls.Add(lLang);
+
+        ComboBox cmbLang = new ComboBox();
+        cmbLang.DropDownStyle = ComboBoxStyle.DropDownList;
+        cmbLang.Location = new Point(272, 46);
+        cmbLang.Size = new Size(100, 24);
+        cmbLang.Items.Add("中文");
+        cmbLang.Items.Add("English");
+        cmbLang.SelectedIndex = L.En ? 1 : 0;
+        pnlBottom.Controls.Add(cmbLang);
+
         Label status = new Label();
         status.Location = new Point(12, 74);
         status.Size = new Size(clientW - 24, 18);
         status.ForeColor = Color.DimGray;
-        status.Text = "原值 = 打开窗口时的数值；信号源用「切换」按钮单独切换";
+        status.Text = L.Hint;
         pnlBottom.Controls.Add(status);
 
         if (loading != null) form.Controls.Remove(loading);
         form.ClientSize = new Size(clientW, clientH);
         pnlScroll.Bounds = new Rectangle(0, 0, clientW, clientH - bottomH);
         pnlBottom.Bounds = new Rectangle(0, clientH - bottomH, clientW, bottomH);
+
+        bool applying = false;   // 语言刷新期间抑制下拉框事件，避免递归
 
         // 量程：0=自动（按读到的原值判断），100 / 255 = 强制
         Action ApplyRanges = delegate
@@ -604,14 +794,59 @@ static class Program
             }
         };
 
-        cmbRange.SelectedIndexChanged += delegate { ApplyRanges(); };
-        ApplyRanges();
+        // 用当前语言刷新所有已存在的控件文字
+        Action ApplyLanguage = delegate
+        {
+            applying = true;
+            form.Text = L.Title;
+            for (int i = 0; i < groups.Count; i++)
+                groups[i].Text = L.Monitor + " " + (i + 1);
+            foreach (Row rw in rowsList)
+            {
+                rw.NameLabel.Text = (rw.Code == "0x10") ? L.Brightness : L.Contrast;
+                UpdateLabel(rw);
+            }
+            foreach (SrcRow s in srcs)
+            {
+                s.NameLabel.Text = L.InputSource;
+                s.SwitchButton.Text = L.Switch;
+                FillCombo(s);
+                UpdateSrcLabel(s);
+            }
+            bApply.Text = L.Apply;
+            bRestore.Text = L.Restore;
+            bReload.Text = L.Reload;
+            bClose.Text = L.Close;
+            lRange.Text = L.RangeLabel;
+            lLang.Text = L.LanguageLabel;
+            int ri = cmbRange.SelectedIndex;
+            cmbRange.Items.Clear();
+            cmbRange.Items.Add(L.RangeAuto);
+            cmbRange.Items.Add("0-100");
+            cmbRange.Items.Add("0-255");
+            cmbRange.SelectedIndex = (ri < 0) ? 0 : ri;
+            cmbLang.SelectedIndex = L.En ? 1 : 0;
+            status.Text = L.Hint;
+            applying = false;
+        };
+
+        cmbRange.SelectedIndexChanged += delegate { if (!applying) ApplyRanges(); };
+        cmbLang.SelectedIndexChanged += delegate
+        {
+            if (applying) return;
+            L.Set(cmbLang.SelectedIndex == 1);
+            SaveLangSetting(L.En);
+            ApplyLanguage();
+            Log("language -> " + (L.En ? "en" : "zh"));
+        };
+
+        ApplyLanguage();
 
         bApply.Click += delegate
         {
             foreach (Row rw in rowsList) SetVcp(rw.Display, rw.Code, rw.Bar.Value);
-            status.Text = "已把 " + rowsList.Count + " 项亮度/对比度设置发送给显示器（" + DateTime.Now.ToString("HH:mm:ss") + "）"
-                + (FakeMode ? "  [假数据模式，并没有真的发送]" : "");
+            status.Text = string.Format(L.FmtApplied, rowsList.Count, DateTime.Now.ToString("HH:mm:ss"))
+                + (FakeMode ? L.FakeNote : "");
         };
 
         bRestore.Click += delegate
@@ -624,7 +859,7 @@ static class Program
                 UpdateLabel(rw);
                 n++;
             }
-            status.Text = "已恢复到打开窗口时的数值（" + n + " 项）" + (FakeMode ? "  [假数据模式]" : "");
+            status.Text = string.Format(L.FmtRestored, n) + (FakeMode ? L.FakeNoteShort : "");
         };
 
         bReload.Click += delegate
@@ -647,30 +882,32 @@ static class Program
                 FillCombo(s);
                 UpdateSrcLabel(s);
             }
-            status.Text = "已重新读取（含信号源），并把当前数值记为新的原值（" + DateTime.Now.ToString("HH:mm:ss") + "）";
+            status.Text = string.Format(L.FmtRefreshed, DateTime.Now.ToString("HH:mm:ss"));
         };
 
         bClose.Click += delegate { form.Close(); };
 
+        // ---- dump / render 的输出固定英文，方便脚本解析，不受界面语言影响 ----
         if (dumpMode)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("CLI = " + CliPath + (FakeMode ? "   [假数据模式]" : ""));
-            sb.AppendLine("显示器数 = " + monitors);
-            sb.AppendLine("布局 = " + cols + " 列 x " + rows + " 行");
+            sb.AppendLine("CLI = " + CliPath + (FakeMode ? "   [fake data mode]" : ""));
+            sb.AppendLine("language = " + (L.En ? "en" : "zh"));
+            sb.AppendLine("monitors = " + monitors);
+            sb.AppendLine("layout = " + cols + " col x " + rows + " row");
             foreach (Row rw in rowsList)
-                sb.AppendLine("  显示器 " + rw.Display + " " + rw.Code + " 原值=" + rw.Original +
-                              " 滑块=" + rw.Bar.Value + " 量程=0-" + rw.Max);
+                sb.AppendLine("  monitor " + rw.Display + " " + rw.Code + " original=" + rw.Original +
+                              " slider=" + rw.Bar.Value + " range=0-" + rw.Max);
             foreach (SrcRow s in srcs)
             {
-                sb.Append("  显示器 " + s.Display + " 信号源 当前=" + s.Current + " (" + SourceName(s.Current) + ")");
-                sb.Append(" 列表来源=" + (s.Guessed ? "标准兜底" : "显示器上报") + " 可选=");
+                sb.Append("  monitor " + s.Display + " source current=" + s.Current + " (" + SourceName(s.Current) + ")");
+                sb.Append(" list=" + (s.Guessed ? "fallback" : "reported") + " options=");
                 foreach (int v in s.Options) sb.Append("0x" + v.ToString("X2") + " ");
                 sb.AppendLine();
             }
-            sb.AppendLine("窗口尺寸 = " + form.ClientSize.Width + " x " + form.ClientSize.Height);
-            sb.AppendLine("屏幕工作区 = " + wa.Width + " x " + wa.Height);
-            sb.AppendLine("顶层控件数 = " + form.Controls.Count);
+            sb.AppendLine("window = " + form.ClientSize.Width + " x " + form.ClientSize.Height);
+            sb.AppendLine("screen = " + wa.Width + " x " + wa.Height);
+            sb.AppendLine("topLevelControls = " + form.Controls.Count);
             File.WriteAllText(a[1], sb.ToString(), Encoding.UTF8);
             Log("dump -> " + a[1]);
             return;
