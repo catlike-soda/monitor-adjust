@@ -21,7 +21,7 @@ C# WinForms のネイティブ単体実行ファイルで、スクリプトホ�
 最新版は [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases) から：
 
 1. Releases から `MonitorAdjust.exe` をダウンロード
-2. [ubihazard/winddcutil](https://github.com/ubihazard/winddcutil) から `winddcutil.exe` をダウンロード
+2. [scottaxcell/winddcutil](https://github.com/scottaxcell/winddcutil) から `winddcutil.exe` をダウンロード（同リポジトリの `dist/winddcutil.exe` です）
 3. 2 つのファイルを同じフォルダーに置き、`MonitorAdjust.exe` を実行
 
 ## 機能
@@ -56,7 +56,7 @@ UI は**中国語と English を実行中に切り替え**られます。ウィ�
 
 ## 動作要件
 
-[**winddcutil**](https://github.com/ubihazard/winddcutil)（ddcutil の Windows 移植版、
+[**winddcutil**](https://github.com/scottaxcell/winddcutil)（ddcutil の Windows 移植版、
 PyInstaller 製の単体実行ファイル）が必要です。**`MonitorAdjust.exe` と同じフォルダーに置いてください。**
 
 プログラムは次の順に探します: exe と同じフォルダー → exe 隣の `winddcutil\` サブフォルダー →

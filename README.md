@@ -20,7 +20,7 @@ Native single-file C# WinForms program, with no script host involved (no bat / p
 Get the latest build from [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases):
 
 1. Download `MonitorAdjust.exe` from Releases
-2. Download `winddcutil.exe` from [ubihazard/winddcutil](https://github.com/ubihazard/winddcutil)
+2. Download `winddcutil.exe` from [scottaxcell/winddcutil](https://github.com/scottaxcell/winddcutil) - it is the file `dist/winddcutil.exe` in that repo
 3. Put both files in the same folder and run `MonitorAdjust.exe`
 
 ## Features
@@ -51,7 +51,7 @@ bottom of the window. The change is instant and your choice is remembered.
 
 ## Requirements
 
-You need [**winddcutil**](https://github.com/ubihazard/winddcutil) (a Windows port of ddcutil,
+You need [**winddcutil**](https://github.com/scottaxcell/winddcutil) (a Windows port of ddcutil,
 shipped as a PyInstaller single-file program), placed **in the same folder as `MonitorAdjust.exe`**.
 
 The program looks for it in this order: same folder as the exe → a `winddcutil\` subfolder next to

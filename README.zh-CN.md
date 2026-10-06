@@ -19,7 +19,7 @@
 到 [**Releases**](https://github.com/catlike-soda/monitor-adjust/releases) 下载最新版：
 
 1. 从 Releases 下载 `MonitorAdjust.exe`
-2. 从 [ubihazard/winddcutil](https://github.com/ubihazard/winddcutil) 下载 `winddcutil.exe`
+2. 从 [scottaxcell/winddcutil](https://github.com/scottaxcell/winddcutil) 下载 `winddcutil.exe`（就是该仓库里的 `dist/winddcutil.exe`）
 3. 两个文件放进同一个文件夹，双击 `MonitorAdjust.exe`
 
 ## 功能
@@ -49,7 +49,7 @@
 
 ## 运行依赖
 
-需要 [**winddcutil**](https://github.com/ubihazard/winddcutil)（ddcutil 的 Windows 移植版，
+需要 [**winddcutil**](https://github.com/scottaxcell/winddcutil)（ddcutil 的 Windows 移植版，
 一个 PyInstaller 单文件程序），**放在和 `MonitorAdjust.exe` 同一个目录下**。
 
 程序会按这个顺序找它：exe 同目录 → exe 同目录的 `winddcutil\` 子目录 → 当前目录 → `PATH`。
