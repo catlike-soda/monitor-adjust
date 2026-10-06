@@ -1,67 +1,74 @@
-# 显示器调节 · monitor-adjust
+# monitor-adjust
 
 **A native Windows GUI to adjust monitor brightness, contrast and input source over DDC/CI.**
-通过 DDC/CI 直接控制显示器硬件的亮度、对比度与输入信号源，自动识别任意数量的显示器。
 
-一个 Windows 桌面小工具，用来直接控制显示器的**亮度、对比度**和**切换输入信号源**。
-走 DDC/CI 协议，调的是显示器硬件本身，和 Windows 自带的亮度滑块不是一回事 ——
-所以外接显示器、以及系统滑块管不到的对比度和信号源，都能调。
+**English** | [中文](README.zh-CN.md) | [日本語](README.ja.md)
 
-原生 C# WinForms 单文件程序，不含任何脚本宿主（不用 bat/ps1/PowerShell）。
+A small Windows desktop tool that controls a monitor's **brightness, contrast and input source**
+directly over the DDC/CI protocol. It talks to the monitor hardware itself, which is not the same
+thing as the Windows brightness slider — so external monitors, and the contrast and input-source
+controls the OS slider cannot reach, are all adjustable.
 
-> 本仓库只包含**源代码**和**编译好的 exe**。
-> 运行需要另外下载 `winddcutil.exe`（见下）。
+Native single-file C# WinForms program, with no script host involved (no bat / ps1 / PowerShell).
 
-## 功能
+> This repository contains the **source code** and a **prebuilt exe** only.
+> Running it also requires `winddcutil.exe` (see [Requirements](#requirements)).
 
-- 界面**中文 / English 实时切换**（见下）
-- 自动识别接入的显示器数量，**插几台认几台**；界面按屏幕大小自适应排布，显示器多时自动分列 / 滚动
-- 每台显示器独立调节：亮度、对比度
-- 切换输入信号源（HDMI / DP / DVI / VGA / 分量 等），带二次确认
-- 「应用」只写亮度和对比度，**不会误切信号源**
-- 「恢复原值」回到打开窗口那一刻的数值
-- 「重新读取」刷新全部数值，并把当前值记为新的「原值」
-- 亮度量程支持 0-100 / 0-255：默认自动识别，也可手动指定
+## Features
 
-## 界面语言 / Language
+- UI **switches between Chinese and English at runtime** (see below)
+- Auto-detects how many monitors are connected — **plug in N, it shows N**. The window lays itself
+  out to fit the screen and splits into columns / scrolls when there are many monitors
+- Per-monitor adjustment of brightness and contrast
+- Switch the input source (HDMI / DP / DVI / VGA / Component, …) with a confirmation prompt
+- **"Apply" only writes brightness and contrast** — it never switches the input source by accident
+- "Restore" returns to the values from the moment the window was opened
+- "Refresh" re-reads everything and makes the current values the new "was" values
+- Brightness range 0-100 or 0-255: detected automatically, with a manual override
 
-界面支持**中文 / English 实时切换**：窗口底部「语言 / Language」下拉框里选，切换即时生效，选择会被记住。
+## Language
 
-- **首次运行**按系统语言自动判断：中文系统用中文，其它用 English
-- 选择保存在 exe 同目录的 `monitor-adjust.ini`；该目录不可写时（例如装在 Program Files）自动退到
-  `%LOCALAPPDATA%\monitor-adjust\settings.ini`
-- 也可以用命令行强制启动语言：
+The UI switches between **Chinese and English at runtime**: pick it from the "Language" box at the
+bottom of the window. The change is instant and your choice is remembered.
+
+- **On first run** it follows the system language: Chinese systems get Chinese, everything else English
+- The choice is stored in `monitor-adjust.ini` next to the exe. If that folder is not writable
+  (e.g. installed under Program Files) it falls back to `%LOCALAPPDATA%\monitor-adjust\settings.ini`
+- You can also force the language from the command line:
 
 ```powershell
 .\显示器调节.exe --lang en
 ```
 
-## 运行依赖
+## Requirements
 
-需要 [**winddcutil**](https://github.com/ubihazard/winddcutil)（ddcutil 的 Windows 移植版，
-一个 PyInstaller 单文件程序），**放在和 `显示器调节.exe` 同一个目录下**。
+You need [**winddcutil**](https://github.com/ubihazard/winddcutil) (a Windows port of ddcutil,
+shipped as a PyInstaller single-file program), placed **in the same folder as `显示器调节.exe`**.
 
-程序会按这个顺序找它：exe 同目录 → exe 同目录的 `winddcutil\` 子目录 → 当前目录 → `PATH`。
+The program looks for it in this order: same folder as the exe → a `winddcutil\` subfolder next to
+the exe → the current directory → `PATH`.
 
-系统要求：Windows 7 SP1 及以上，自带 .NET Framework 4.x 即可，无需管理员权限。
+System requirements: Windows 7 SP1 or later, with the bundled .NET Framework 4.x. No administrator
+rights needed.
 
-## 使用方法
+## Usage
 
-1. 把 `显示器调节.exe` 和 `winddcutil.exe` 放进同一个文件夹
-2. 双击 `显示器调节.exe`
-3. 拖动滑块后点「应用」
+1. Put `显示器调节.exe` and `winddcutil.exe` in the same folder
+2. Double-click `显示器调节.exe`
+3. Drag the sliders and click "Apply"
 
-注意事项：
+Notes:
 
-- **切换信号源请谨慎**：切到没有接线的接口，显示器会黑屏显示「无信号」，
-  而且软件可能再也切不回来，需要用显示器自己的实体按键切回去
-- 显示器需在自己的 OSD 菜单里开启 DDC/CI（多数显示器默认已开）
-- 笔记本内置屏通常不支持 DDC/CI，不会出现在列表里，属正常现象
-- 程序会在自己所在目录生成 `gui-log.txt` 运行日志，可随时删除
+- **Be careful when switching the input source**: switching to a port with nothing connected makes
+  the display go black or show "no signal", and the software may not be able to switch it back —
+  you would have to use the monitor's own physical buttons
+- The monitor must have DDC/CI enabled in its own OSD menu (most monitors ship with it on)
+- Built-in laptop panels usually do not support DDC/CI and will not appear in the list; that is normal
+- The program writes a `gui-log.txt` run log next to itself; feel free to delete it
 
-## 从源码编译
+## Build from source
 
-用系统自带的 .NET Framework 编译器，**不需要 Visual Studio**：
+Use the .NET Framework compiler that ships with Windows — **Visual Studio is not required**:
 
 ```powershell
 & "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
@@ -71,39 +78,43 @@
   "显示器调节.cs"
 ```
 
-- `/target:winexe` 不弹控制台窗口
-- `/codepage:65001` 源码是 UTF-8，**必须加**，否则中文字符串会乱码
-- 输出文件名请保持 `显示器调节.exe`：程序集名取自文件名
+- `/target:winexe` — no console window
+- `/codepage:65001` — the source is UTF-8 and **this flag is required**, otherwise the Chinese
+  string literals come out as mojibake
+- Keep the output file name `显示器调节.exe`: the assembly name is taken from it
 
-## 隐藏参数（调试用）
+## Hidden flags (debugging)
 
 ```powershell
-# 自检：把读到的数值写成文本，不显示窗口
+# Self-check: write the values it read into a text file, without showing a window
 Start-Process ".\显示器调节.exe" -ArgumentList '--dump','dump.txt' -Wait
 
-# 离屏渲染：窗口画在屏幕外，截图存 PNG，用来检查排版
+# Off-screen render: draw the window off-screen and save a PNG, to check the layout
 Start-Process ".\显示器调节.exe" -ArgumentList '--render','preview.png' -Wait
 
-# 假数据模式：完全不调用 winddcutil，用编造的数据画界面（1~16 台）
+# Fake data mode: never calls winddcutil, draws the UI from made-up data (1-16 monitors)
 Start-Process ".\显示器调节.exe" -ArgumentList '--fake','6','--render','n6.png' -Wait
 
-# 模拟小屏幕，验证多显示器下的排版
+# Pretend the screen is small, to check the layout with many monitors
 Start-Process ".\显示器调节.exe" -ArgumentList '--fake','8','--screen','1024x600','--render','n8.png' -Wait
 
-# 指定启动语言（zh / en），用于截图对比两套界面
+# Force the UI language (zh / en), e.g. to capture both versions
 Start-Process ".\显示器调节.exe" -ArgumentList '--lang','en','--render','en.png' -Wait
 ```
 
-`--fake` 会连写入操作一起挡掉，**不会误改真实显示器**。
+`--fake` also blocks every write, so it **can never change a real monitor**.
 
-## 已知限制
+## Known limitations
 
-- **量程靠猜**：`winddcutil getvcp` 只返回当前值、不返回最大值，也没有任何命令行选项，
-  所以程序只能按「读到的值 > 100 就当 0-255」判断，猜错时请手动指定量程
-- 信号源列表偶尔读不到（DDC/CI 通信本身不稳定），此时会退回一份常见输入源的兜底列表
-- 滑块范围固定 0 起步（显示器的亮度/对比度最低值基本都是 0）
+- **The range is guessed**: `winddcutil getvcp` returns the current value but not the maximum, and
+  offers no command-line options at all. The program therefore assumes "value > 100 means 0-255";
+  if it guesses wrong, set the range manually
+- The input-source list is occasionally unreadable (DDC/CI itself is flaky), in which case it falls
+  back to a list of common inputs
+- Sliders always start at 0 (the minimum brightness/contrast on virtually every monitor is 0)
 
-## 许可
+## License
 
-代码可自由使用、修改、分发。
-`winddcutil` 是其各自作者的独立项目，遵循其自身许可，本仓库不包含它。
+The code may be used, modified and distributed freely.
+`winddcutil` is an independent project by its own authors, under its own license; this repository
+does not include it.
